@@ -92,3 +92,14 @@ ECM sends a First Frame, we must answer `30 00 00` to its physical ID
 - `cable_reset.py` recovers a hung cable remotely via `USBDEVFS_RESET`
   (kernel USB port reset) — see the operational notes in
   [vci-protocol.md](vci-protocol.md#firmware-landmines).
+
+## Vehicle compatibility results
+
+All testing used only read-only OBD-II services (modes 01/03/07/09) and
+passive listening — no writes, no programming, no actuator commands.
+
+| Vehicle | Result |
+|---|---|
+| 2018 Kia Soul | ✅ Full success — live data, DTC scan, and a voltage-logger no-start diagnosis (sheared starter B-terminal stud). Multi-frame VIN read was flaky. |
+| 2023 Mazda CX-50 | ✅ Full success — supported PIDs, coolant temp, clean DTC scan (0x7E8 + 0x7E9), and a clean multi-frame VIN read (`...XXXXXX`, decodes to MY2023). |
+| 2023 Nissan Rogue SV | ❌ Hard incompatibility — diagnostic port silent across both Windows and Linux hosts and multiple clean power cycles, cable healthy throughout. Consistent with a gateway-isolated port needing CAN FD / 29-bit addressing this classic-CAN 11-bit cable cannot provide. Use a current certified scan tool. |
