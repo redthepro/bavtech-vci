@@ -97,3 +97,20 @@ starter solenoid.
   can arrive late because HID polling caps at a few hundred frames/s.
 - 11-bit addressing only (`CAN_WRITE` takes a 16-bit ID field).
 - K-line commands (0xB0/0xB1) exist in firmware but are unexplored.
+
+## Linux setup (tested on Armbian/aarch64, ThinkPad X13s)
+
+```sh
+sudo apt install python3-hidapi   # libusb-backend build; works as-is
+sudo tee /etc/udev/rules.d/99-bavtech-vci.rules << "RULES"
+SUBSYSTEM=="usb", ATTR{idVendor}=="1fc9", ATTR{idProduct}=="8084", MODE="0666", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1fc9", ATTRS{idProduct}=="8084", MODE="0666", TAG+="uaccess"
+RULES
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+The Debian/Ubuntu `python3-hidapi` package links the **libusb** backend of
+hidapi, so the `usb`-subsystem rule is the one that matters; the hidraw
+rule is kept for hidraw-backend builds. No kernel driver or vendor
+software needed on Linux at all.
