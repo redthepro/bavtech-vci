@@ -1,0 +1,16 @@
+[Unit]
+Description=BavTech read-only OBD-II agent (headless)
+After=network.target
+
+[Service]
+Type=simple
+User=obduser
+WorkingDirectory=/home/obduser/bavtech-vci
+ExecStart=/usr/bin/python3 /home/obduser/bavtech-vci/agent.py
+Restart=always
+RestartSec=2
+Environment=AGENT_TOKEN=cx50
+Environment=AGENT_PORT=8177
+
+[Install]
+WantedBy=multi-user.target
