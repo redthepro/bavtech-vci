@@ -129,7 +129,23 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_html(self):
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   "dashboard.html"), "rb") as f:
+                body = f.read()
+        except OSError:
+            body = b"<h1>dashboard.html missing</h1>"
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_GET(self):
+        page = urlparse(self.path).path
+        if page in ("/", "/index.html", "/dashboard"):
+            return self._send_html()   # UI page needs no token; its API calls do
         if self.headers.get("X-Token") != TOKEN:
             return self._send(401, {"error": "bad or missing X-Token"})
         path = urlparse(self.path).path.strip("/").split("/")

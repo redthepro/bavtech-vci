@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CX-50 Diagnostics</title>
+<style>
+  :root {
+    --bg:#0e1116; --panel:#171c24; --panel2:#1f2632; --line:#2a3240;
+    --txt:#e6edf3; --muted:#8b98a8; --accent:#4aa8ff; --good:#3fb950;
+    --warn:#d29922; --bad:#f85149;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt);
+    font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  header { display:flex; align-items:center; gap:14px; padding:12px 18px;
+    background:var(--panel); border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  header h1 { font-size:16px; margin:0; font-weight:600; letter-spacing:.3px; }
+  .dot { width:10px; height:10px; border-radius:50%; background:var(--muted);
+    box-shadow:0 0 0 3px rgba(255,255,255,.04); }
+  .dot.on { background:var(--good); } .dot.err { background:var(--bad); }
+  .meta { color:var(--muted); font-size:12px; }
+  .spacer { flex:1; }
+  input, button { font:inherit; color:var(--txt); background:var(--panel2);
+    border:1px solid var(--line); border-radius:6px; padding:6px 10px; }
+  input { width:110px; }
+  button { cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#04121f; font-weight:600; }
+  button:disabled { opacity:.5; cursor:default; }
+  main { padding:18px; max-width:1100px; margin:0 auto; }
+  .row { display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .card h3 { margin:0 0 10px; font-size:12px; text-transform:uppercase;
+    letter-spacing:.6px; color:var(--muted); font-weight:600; }
+  .metric { font-size:30px; font-weight:650; font-variant-numeric:tabular-nums; }
+  .unit { font-size:14px; color:var(--muted); font-weight:400; margin-left:4px; }
+  .sub { color:var(--muted); font-size:12px; margin-top:2px; }
+  .wide { grid-column:1/-1; }
+  .vin { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:18px; letter-spacing:1px; }
+  .bar { height:8px; border-radius:4px; background:var(--panel2); overflow:hidden; margin-top:8px; }
+  .bar > span { display:block; height:100%; background:var(--accent); width:0; transition:width .4s; }
+  .dtc-item { padding:8px 10px; border:1px solid var(--line); border-radius:6px;
+    background:var(--panel2); margin-top:6px; font-family:ui-monospace,monospace; }
+  .empty { color:var(--good); }
+  .banner { background:#241a1a; border:1px solid var(--bad); color:#ffb4ae;
+    padding:8px 12px; border-radius:8px; margin-bottom:14px; display:none; }
+  .foot { color:var(--muted); font-size:11px; margin-top:18px; text-align:center; }
+  .foot b { color:var(--good); }
+</style>
+</head>
+<body>
+<header>
+  <span class="dot" id="dot"></span>
+  <h1>CX-50 Diagnostics</h1>
+  <span class="meta" id="agentmeta">not connected</span>
+  <span class="spacer"></span>
+  <span class="meta">token</span><input id="token" value="cx50">
+  <button id="toggle" class="primary">Connect</button>
+</header>
+<main>
+  <div class="banner" id="banner"></div>
+
+  <div class="row">
+    <div class="card wide">
+      <h3>Vehicle</h3>
+      <div class="vin" id="vin">—</div>
+      <div class="sub" id="responder"></div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:14px">
+    <div class="card"><h3>Battery</h3><div class="metric"><span id="volts">—</span><span class="unit">V</span></div><div class="sub">OBD pin 16</div></div>
+    <div class="card"><h3>Engine RPM</h3><div class="metric" id="rpm">—</div></div>
+    <div class="card"><h3>Coolant</h3><div class="metric"><span id="coolant">—</span><span class="unit">°C</span></div></div>
+    <div class="card"><h3>Speed</h3><div class="metric"><span id="speed">—</span><span class="unit">km/h</span></div></div>
+    <div class="card"><h3>Throttle</h3><div class="metric"><span id="throttle">—</span><span class="unit">%</span></div><div class="bar"><span id="throttlebar"></span></div></div>
+    <div class="card"><h3>Fuel Level</h3><div class="metric"><span id="fuel">—</span><span class="unit">%</span></div><div class="bar"><span id="fuelbar"></span></div></div>
+  </div>
+
+  <div class="row" style="margin-top:14px">
+    <div class="card wide">
+      <h3>Diagnostic Trouble Codes</h3>
+      <button id="readdtc">Read codes</button>
+      <div id="dtc"></div>
+    </div>
+  </div>
+
+  <div class="foot">Read-only diagnostics · this tool only sends standard OBD read requests · <b>it cannot write, clear, or reprogram anything</b></div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let polling = false, timer = null;
+
+function base() { return location.origin; }         // served by the agent itself
+function hdr() { return { "X-Token": $("token").value }; }
+
+async function api(path) {
+  const r = await fetch(base() + path, { headers: hdr(), cache: "no-store" });
+  if (!r.ok) throw new Error("HTTP " + r.status + " on " + path);
+  return r.json();
+}
+
+function setConn(state, msg) {
+  const d = $("dot");
+  d.className = "dot" + (state === "ok" ? " on" : state === "err" ? " err" : "");
+  $("agentmeta").textContent = msg || "";
+}
+function showErr(m) { const b = $("banner"); b.style.display = m ? "block" : "none"; b.textContent = m || ""; }
+
+function num(v, d=0) { return (v === null || v === undefined) ? "—" : (typeof v === "number" ? v.toFixed(d) : v); }
+
+async function tick() {
+  try {
+    const s = await api("/status");
+    showErr("");
+    setConn("ok", "live · connected");
+    $("vin").textContent = s.vin || "—";
+    $("responder").textContent = s.responder ? ("responding module 0x" + s.responder) : "";
+    $("volts").textContent = num(s.voltage, 2);
+    $("rpm").textContent = num(s.rpm, 0);
+    $("coolant").textContent = num(s.coolant_c, 0);
+    $("speed").textContent = num(s.speed_kph, 0);
+    $("throttle").textContent = num(s.throttle_pct, 0);
+    $("fuel").textContent = num(s.fuel_pct, 0);
+    $("throttlebar").style.width = (s.throttle_pct || 0) + "%";
+    $("fuelbar").style.width = (s.fuel_pct || 0) + "%";
+  } catch (e) {
+    setConn("err", "connection lost — retrying");
+    showErr(e.message + " — is the agent reachable? (Wi-Fi may be dropping)");
+  }
+}
+
+async function readDtc() {
+  $("readdtc").disabled = true;
+  try {
+    const d = await api("/dtc");
+    const el = $("dtc"); el.innerHTML = "";
+    const all = [...(d.stored||[]).map(x=>({...x,kind:"stored"})), ...(d.pending||[]).map(x=>({...x,kind:"pending"}))];
+    if (!all.length) { el.innerHTML = '<div class="dtc-item empty">No stored or pending codes ✓</div>'; }
+    else all.forEach(c => { const n=document.createElement("div"); n.className="dtc-item";
+      n.textContent = `${c.code}  (${c.kind}, module 0x${c.ecu})`; el.appendChild(n); });
+  } catch (e) { showErr("DTC read failed: " + e.message); }
+  $("readdtc").disabled = false;
+}
+
+function start() {
+  polling = true; $("toggle").textContent = "Disconnect";
+  tick(); timer = setInterval(tick, 2500);
+}
+function stop() {
+  polling = false; $("toggle").textContent = "Connect";
+  clearInterval(timer); setConn("", "disconnected");
+}
+
+$("toggle").onclick = () => polling ? stop() : start();
+$("readdtc").onclick = readDtc;
+
+// probe agent identity once on load
+(async () => {
+  try { const h = await api("/health");
+    setConn("", `agent ${h.mode} · fw ${h.firmware}`);
+  } catch (e) { setConn("err", "agent unreachable"); }
+})();
+</script>
+</body>
+</html>
