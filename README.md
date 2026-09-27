@@ -114,3 +114,9 @@ The Debian/Ubuntu `python3-hidapi` package links the **libusb** backend of
 hidapi, so the `usb`-subsystem rule is the one that matters; the hidraw
 rule is kept for hidraw-backend builds. No kernel driver or vendor
 software needed on Linux at all.
+
+## Documentation
+
+- [docs/architecture.md](docs/architecture.md) — system stack, why a BMW cable works on any car, query walkthrough
+- [docs/vci-protocol.md](docs/vci-protocol.md) — full protocol spec: framing, command reference, RX format, firmware landmines
+- [docs/reverse-engineering.md](docs/reverse-engineering.md) — methodology: how the protocol was extracted and verified
