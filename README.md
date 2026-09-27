@@ -1,8 +1,10 @@
 # bavtech-vci
 
 Using a **Bavarian Technic** (BMW-specific) diagnostic cable as a generic
-CAN / OBD-II interface for any modern vehicle — tested on a 2018 Kia Soul,
-next up a 2023 Nissan Rogue SV and 2023 Mazda CX-50.
+CAN / OBD-II interface for modern vehicles — working on a 2018 Kia Soul and a
+2023 Mazda CX-50. A 2023 Nissan Rogue SV did **not** work: the cable is a
+generation too old for it — that vehicle's diagnostic bus needs a newer
+interface than this classic-CAN cable.
 
 ## Background
 

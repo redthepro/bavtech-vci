@@ -102,4 +102,4 @@ passive listening — no writes, no programming, no actuator commands.
 |---|---|
 | 2018 Kia Soul | ✅ Full success — live data, DTC scan, and a voltage-logger no-start diagnosis (sheared starter B-terminal stud). Multi-frame VIN read was flaky. |
 | 2023 Mazda CX-50 | ✅ Full success — supported PIDs, coolant temp, clean DTC scan (0x7E8 + 0x7E9), and a clean multi-frame VIN read (`...XXXXXX`, decodes to MY2023). |
-| 2023 Nissan Rogue SV | ❌ Hard incompatibility — diagnostic port silent across both Windows and Linux hosts and multiple clean power cycles, cable healthy throughout. Consistent with a gateway-isolated port needing CAN FD / 29-bit addressing this classic-CAN 11-bit cable cannot provide. Use a current certified scan tool. |
+| 2023 Nissan Rogue SV | ❌ Didn't work — the cable is too old for it. The diagnostic port stayed silent across both Windows and Linux hosts and multiple clean power cycles (cable healthy throughout); this 2023 platform's bus needs a newer interface than this classic-CAN cable, so it needs a current scan tool. |
