@@ -265,10 +265,21 @@ def cmd_crank(vci, seconds=20):
 def main():
     ap = argparse.ArgumentParser(description="BavTech HID cable OBD-II tool")
     ap.add_argument("action", nargs="?", default="status",
-                    choices=["status", "dtc", "voltage", "sniff", "crank"])
+                    choices=["status", "dtc", "voltage", "sniff", "crank", "record"])
+    ap.add_argument("--sim", metavar="FIXTURE",
+                    help="replay a recorded fixture instead of using the cable")
+    ap.add_argument("--out", metavar="FIXTURE", default="fixtures/capture.json",
+                    help="record: output fixture path")
+    ap.add_argument("--name", default="unknown vehicle",
+                    help="record: label stored in the fixture")
     args = ap.parse_args()
 
-    vci = Vci()
+    if args.sim:
+        from sim import SimVci
+        vci = SimVci(args.sim)
+        print("[sim] replaying %s - %s (recorded %s)" % (args.sim, vci.meta.get("name","?"), vci.meta.get("recorded","?")))
+    else:
+        vci = Vci()
     print(f"cable firmware: {vci.firmware_version()}")
 
     if args.action == "voltage":
@@ -283,6 +294,17 @@ def main():
         return
 
     vci.can_config()
+
+    if args.action == "record":
+        import os
+        from sim import record_fixture
+        d = os.path.dirname(args.out)
+        if d:
+            os.makedirs(d, exist_ok=True)
+        record_fixture(vci, args.out, args.name)
+        vci.close()
+        return
+
     if args.action == "sniff":
         try:
             while True:

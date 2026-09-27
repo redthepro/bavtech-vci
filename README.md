@@ -120,3 +120,25 @@ software needed on Linux at all.
 - [docs/architecture.md](docs/architecture.md) — system stack, why a BMW cable works on any car, query walkthrough
 - [docs/vci-protocol.md](docs/vci-protocol.md) — full protocol spec: framing, command reference, RX format, firmware landmines
 - [docs/reverse-engineering.md](docs/reverse-engineering.md) — methodology: how the protocol was extracted and verified
+
+## Offline simulation (develop without the car)
+
+You cannot copy an ECU's firmware over OBD (that needs security-gated
+memory reads or a bench flash dump). But you can capture the car's
+*behavior at the OBD interface* and replay it offline — which is what you
+actually need for development.
+
+```sh
+# 1. capture once, live, READ-ONLY (car at full ignition):
+python3 kia_vci.py record --out fixtures/cx50.json --name "2023 CX-50"
+
+# 2. then develop/test offline — no cable, no car, no risk:
+python3 kia_vci.py status --sim fixtures/cx50.json
+python3 kia_vci.py dtc    --sim fixtures/cx50.json
+```
+
+`record` sweeps every supported mode-01 PID plus DTCs and VIN and stores the
+responses in a JSON fixture. `--sim` swaps the cable for `SimVci` (see
+`sim.py`), which re-frames those responses back into ISO-TP so the tool's
+real receive/decode path runs unchanged. Fixtures contain the vehicle VIN;
+scrub it if you share one.
