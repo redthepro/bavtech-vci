@@ -1,6 +1,6 @@
 """Raw debugging: ADC payload, filter behavior, and OBD responses."""
 import time
-from kia_vci import (Vci, hexs, ADC, CAN_READ, OBD_REQUEST_ID)
+from vci import (Vci, hexs, ADC, CAN_READ, OBD_REQUEST_ID)
 
 vci = Vci()
 print("firmware:", vci.firmware_version())

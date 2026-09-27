@@ -57,18 +57,18 @@ Received CAN frames come back as:
 - The RX FIFO buffers all bus traffic; on a busy bus, poll fast and filter
   in software, and expect responses to be behind a backlog.
 
-## The tool: `kia_vci.py`
+## The tool: `vci.py`
 
 Despite the name it is vehicle-agnostic — it speaks standardized OBD-II
 (ISO 15765-4 at 500 kbps, 11-bit addressing), which every 2008+ US-market
 vehicle implements. Requires Python 3 and the `hidapi` package.
 
 ```
-python kia_vci.py status    # battery voltage, supported PIDs, coolant, VIN
-python kia_vci.py dtc       # stored (mode 03) + pending (mode 07) trouble codes
-python kia_vci.py voltage   # one-shot battery voltage from OBD pin 16
-python kia_vci.py crank     # 20 s voltage logger @ ~64 Hz — no-start diagnosis
-python kia_vci.py sniff     # dump raw CAN frames from the bus
+python vci.py status    # battery voltage, supported PIDs, coolant, VIN
+python vci.py dtc       # stored (mode 03) + pending (mode 07) trouble codes
+python vci.py voltage   # one-shot battery voltage from OBD pin 16
+python vci.py crank     # 20 s voltage logger @ ~64 Hz — no-start diagnosis
+python vci.py sniff     # dump raw CAN frames from the bus
 ```
 
 What's inside:
@@ -130,11 +130,11 @@ actually need for development.
 
 ```sh
 # 1. capture once, live, READ-ONLY (car at full ignition):
-python3 kia_vci.py record --out fixtures/cx50.json --name "2023 CX-50"
+python3 vci.py record --out fixtures/cx50.json --name "2023 CX-50"
 
 # 2. then develop/test offline — no cable, no car, no risk:
-python3 kia_vci.py status --sim fixtures/cx50.json
-python3 kia_vci.py dtc    --sim fixtures/cx50.json
+python3 vci.py status --sim fixtures/cx50.json
+python3 vci.py dtc    --sim fixtures/cx50.json
 ```
 
 `record` sweeps every supported mode-01 PID plus DTCs and VIN and stores the

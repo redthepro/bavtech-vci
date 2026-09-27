@@ -12,7 +12,7 @@ cable's microcontroller over USB HID, and through it to the car.
 ```mermaid
 flowchart TB
     subgraph laptop["Laptop (Windows x64 or Armbian aarch64)"]
-        app["kia_vci.py<br/>OBD-II modes 01/03/07/09, DTC decode, voltage logger"]
+        app["vci.py<br/>OBD-II modes 01/03/07/09, DTC decode, voltage logger"]
         isotp["ISO-TP layer (ISO 15765-2)<br/>single/multi-frame, flow control"]
         vci["Vci class — VCI protocol<br/>[LEN][CMD][PAYLOAD] framing"]
         hidapi["hidapi (libusb backend on Linux,<br/>native HID on Windows)"]
@@ -39,7 +39,7 @@ Each layer is independently useful:
 
 | Layer | File / component | Replaceable with |
 |---|---|---|
-| OBD-II application | `kia_vci.py` subcommands | any diagnostic logic |
+| OBD-II application | `vci.py` subcommands | any diagnostic logic |
 | ISO-TP transport | `isotp_recv` / `obd_request` | UDS client, manufacturer protocols |
 | VCI cable protocol | `Vci` class | — (this is the reverse-engineered part) |
 | USB transport | hidapi | any HID library |
@@ -63,7 +63,7 @@ vehicle-specific code.
 
 ```mermaid
 sequenceDiagram
-    participant S as kia_vci.py
+    participant S as vci.py
     participant C as Cable MCU
     participant E as ECM (0x7E8)
     S->>C: HID out: [04][93][0B][DF 07][02 01 0C ...]  (CAN_WRITE to 0x7DF: mode 01 PID 0C)

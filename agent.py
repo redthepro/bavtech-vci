@@ -5,7 +5,7 @@ Read-only OBD-II HTTP agent for the BavTech cable.
 Runs on the machine physically holding the cable (Armbian aarch64 or
 Windows) and serves JSON so a remote GUI can operate it over the network.
 
-SAFETY: read-only. It reuses the audited kia_vci.Vci driver, whose only
+SAFETY: read-only. It reuses the audited vci.Vci driver, whose only
 bus transmissions are OBD modes 01/03/07/09 + ISO-TP flow control. There
 is no endpoint that writes, clears, actuates, or programs anything.
 
@@ -29,8 +29,8 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
-import kia_vci
-from kia_vci import Vci, obd_request, isotp_recv, decode_dtc
+import vci
+from vci import Vci, obd_request, isotp_recv, decode_dtc
 
 TOKEN = os.environ.get("AGENT_TOKEN", "cx50")
 PORT = int(os.environ.get("AGENT_PORT", "8177"))

@@ -1,6 +1,6 @@
 """Reset cable MCU, reconfig CAN, verify bus chatter and OBD response."""
 import time
-from kia_vci import Vci, hexs, CAN_READ, OBD_REQUEST_ID
+from vci import Vci, hexs, CAN_READ, OBD_REQUEST_ID
 
 RESET = 0x01
 

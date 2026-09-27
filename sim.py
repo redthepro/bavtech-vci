@@ -15,16 +15,16 @@ which is what you actually need to develop and test offline.
 
 Usage:
     # capture (live, read-only) — done once per car:
-    python3 kia_vci.py record --out fixtures/cx50.json --name "2023 CX-50"
+    python3 vci.py record --out fixtures/cx50.json --name "2023 CX-50"
     # develop/test offline against the capture:
-    python3 kia_vci.py status --sim fixtures/cx50.json
-    python3 kia_vci.py dtc    --sim fixtures/cx50.json
+    python3 vci.py status --sim fixtures/cx50.json
+    python3 vci.py dtc    --sim fixtures/cx50.json
 """
 
 import datetime
 import json
 
-from kia_vci import obd_request, OBD_REQUEST_ID
+from vci import obd_request, OBD_REQUEST_ID
 
 
 # --------------------------------------------------------------------------

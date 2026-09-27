@@ -1,6 +1,6 @@
 """Test whether CAN_CONFIG needs settle time before CAN_WRITE is heard."""
 import time
-from kia_vci import Vci, hexs, OBD_REQUEST_ID
+from vci import Vci, hexs, OBD_REQUEST_ID
 
 def poll_for_obd(vci, seconds):
     t0 = time.time()

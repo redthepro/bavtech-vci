@@ -1,6 +1,6 @@
 """Compare CAN_READ vs CAN_READ_ALL raw payloads after an OBD query."""
 import time
-from kia_vci import Vci, hexs, CAN_READ, CAN_READ_ALL, OBD_REQUEST_ID
+from vci import Vci, hexs, CAN_READ, CAN_READ_ALL, OBD_REQUEST_ID
 
 vci = Vci()
 vci.can_config()

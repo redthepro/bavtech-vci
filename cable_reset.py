@@ -41,8 +41,8 @@ if not node2:
     sys.exit(1)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kia_vci import Vci
-import kia_vci
+from vci import Vci
+import vci
 for attempt in range(4):
     try:
         vci = Vci()
